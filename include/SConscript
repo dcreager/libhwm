@@ -1,0 +1,13 @@
+Import('root_env')
+
+env = root_env.Clone()
+
+env.Alias("install", env.Install("$INCLUDEDIR"))
+
+h_files = \
+    [
+     "hwm-buffer.h",
+    ]
+
+env.Alias("install", env.Install("$INCLUDEDIR",
+                                 h_files))

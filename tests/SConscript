@@ -1,0 +1,37 @@
+import os
+import os.path
+
+Import('root_env')
+
+env = root_env.Clone()
+
+env.Prepend(CPPPATH=["#/include", "$check_CPPPATH"],
+            LIBPATH=["#/src", "$check_LIBPATH"])
+
+# Give each test program an RPATH, so that it can find the libhwm
+# library while they're still in the source tree.
+
+rpath = [env.Literal(os.path.join('\\$$ORIGIN', os.pardir, 'src'))]
+
+
+def add_test(test_program):
+    c_file = "%s.c" % test_program
+
+
+    target = env.Program(test_program, [c_file],
+                         LIBS=['hwm', '$check_LIB'],
+                         RPATH=rpath)
+    env.Alias("build-tests", target)
+
+    run_test_target = env.Alias("test", [target],
+                                ["@%s" % target[0].abspath])
+    env.AlwaysBuild(run_test_target)
+
+
+add_test("test-hwm-buffer")
+
+
+# Don't build the tests by default; but clean them by default.
+
+if GetOption('clean'):
+    env.Default("build-tests")

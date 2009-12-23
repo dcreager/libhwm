@@ -1,0 +1,16 @@
+Import('root_env')
+
+env = root_env.Clone()
+
+env.Append(CPPPATH = ["#/include"])
+
+libhwm_files = \
+    [
+     "hwm-buffer.c",
+    ]
+
+libhwm = env.SharedLibrary("hwm", libhwm_files)
+env.Alias("install", env.Install("$LIBDIR", libhwm))
+Default(libhwm)
+
+Export('libhwm')
