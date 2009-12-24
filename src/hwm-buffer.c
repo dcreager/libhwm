@@ -25,6 +25,7 @@ hwm_buffer_init(hwm_buffer_t *hwm)
 
     hwm->allocated_size = 0;
     hwm->current_size = 0;
+    hwm->allocation_count = 0;
     hwm->buf = NULL;
 }
 
@@ -67,6 +68,7 @@ hwm_buffer_done(hwm_buffer_t *hwm)
 
     hwm->allocated_size = 0;
     hwm->current_size = 0;
+    hwm->allocation_count = 0;
     hwm->buf = NULL;
 }
 
@@ -97,6 +99,8 @@ hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size)
          */
 
         hwm->buf = malloc(size);
+        hwm->allocated_size = size;
+        hwm->allocation_count++;
 
     } else {
         /*
@@ -107,6 +111,8 @@ hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size)
         if (hwm->allocated_size < size)
         {
             hwm->buf = realloc(hwm->buf, size);
+            hwm->allocated_size = size;
+            hwm->allocation_count++;
         }
     }
 

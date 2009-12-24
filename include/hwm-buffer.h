@@ -75,6 +75,13 @@ typedef struct hwm_buffer
     size_t  current_size;
 
     /**
+     * The number of times the data buffer has been allocated or
+     * reallocated.
+     */
+
+    unsigned int  allocation_count;
+
+    /**
      * The actual data buffer.
      */
 

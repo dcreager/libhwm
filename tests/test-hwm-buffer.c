@@ -94,6 +94,10 @@ START_TEST(test_load_mem_01)
     fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
                 "Cannot load HWM buffer");
     fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 1,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 1);
     hwm_buffer_done(&buf);
 }
 END_TEST
@@ -113,6 +117,85 @@ START_TEST(test_load_mem_02)
     fail_unless(hwm_buffer_load_mem(&buf, DATA_02, LENGTH_02),
                 "Cannot load HWM buffer");
     fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
+    fail_unless(buf.allocation_count == 2,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 2);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_load_mem_03)
+{
+    hwm_buffer_t  buf;
+
+    /*
+     * This test should require one allocation.
+     */
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 1,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_allocated_size_01)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless(buf.allocated_size == LENGTH_01,
+                "Buffer didn't allocate the right amount memory "
+                "(got %zu bytes, expected %zu)",
+                buf.allocated_size, LENGTH_01);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_allocated_size_02)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_02, LENGTH_02),
+                "Cannot load HWM buffer");
+    fail_unless(buf.allocated_size == LENGTH_02,
+                "Buffer didn't allocate the right amount memory "
+                "(got %zu bytes, expected %zu)",
+                buf.allocated_size, LENGTH_02);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_allocated_size_03)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless(buf.allocated_size == LENGTH_01,
+                "Buffer didn't allocate the right amount memory "
+                "(got %zu bytes, expected %zu)",
+                buf.allocated_size, LENGTH_01);
     hwm_buffer_done(&buf);
 }
 END_TEST
@@ -303,6 +386,10 @@ test_suite()
     tcase_add_test(tc, test_starts_empty);
     tcase_add_test(tc, test_load_mem_01);
     tcase_add_test(tc, test_load_mem_02);
+    tcase_add_test(tc, test_load_mem_03);
+    tcase_add_test(tc, test_allocated_size_01);
+    tcase_add_test(tc, test_allocated_size_02);
+    tcase_add_test(tc, test_allocated_size_03);
     tcase_add_test(tc, test_unload_mem_01);
     tcase_add_test(tc, test_append_mem_01);
     tcase_add_test(tc, test_append_mem_02);
