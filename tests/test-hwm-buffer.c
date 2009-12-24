@@ -44,9 +44,22 @@ size_t  LENGTH_EMPTY_01 = 10;
         fail_unless((buffer)->current_size == size,             \
                     "Data doesn't match: wrong size (%zu)",     \
                     (buffer)->current_size);                    \
-        fail_unless(memcmp(hwm_buffer_mem(buffer, void),        \
-                           other, size) == 0,                   \
-                    "Data doesn't match: different contents");  \
+                                                                \
+        if (memcmp(hwm_buffer_mem(buffer, void),                \
+                   other, size) != 0)                           \
+        {                                                       \
+            hwm_buffer_t  expected;                             \
+            hwm_buffer_init(&expected);                         \
+            hwm_buffer_point_at_mem(&expected, other, size);    \
+                                                                \
+            fprintf(stderr, "Actual:\n");                       \
+            hwm_buffer_fprint(stderr, buffer);                  \
+            fprintf(stderr, "Expected:\n");                     \
+            hwm_buffer_fprint(stderr, &expected);               \
+                                                                \
+            hwm_buffer_done(&expected);                         \
+            fail("Data doesn't match: different contents");     \
+        }                                                       \
     }
 
 #define fail_unless_memeq(src, dest, size)              \

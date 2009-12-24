@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /**
  * @file This file provides a “high-water mark” buffer.  This allows
@@ -296,6 +297,22 @@ hwm_buffer_append_str(hwm_buffer_t *hwm, const char *src);
 
 bool
 hwm_buffer_load_buf(hwm_buffer_t *hwm, const hwm_buffer_t *src);
+
+
+/**
+ * Print the contents of the buffer to the specified stream.  The data
+ * is printed in the following format:
+ *
+ * <pre>
+ *   00 01 02 03 04 05 06 07   08 09 0a 0b 0c 0d 0e 0f
+ *   .
+ *   .
+ *   .
+ * </pre>
+ */
+
+void
+hwm_buffer_fprint(FILE *stream, hwm_buffer_t *hwm);
 
 
 #endif /* HWM_BUFFER_H */
