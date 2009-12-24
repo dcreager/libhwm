@@ -6,7 +6,11 @@ env.Append(CPPPATH = ["#/include"])
 
 libhwm_files = \
     [
-     "hwm-buffer.c",
+     "allocate.c",
+     "append.c",
+     "inspect.c",
+     "load.c",
+     "unload.c",
     ]
 
 libhwm = env.SharedLibrary("hwm", libhwm_files)
