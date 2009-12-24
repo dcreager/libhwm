@@ -47,6 +47,20 @@
  * NUL-terminated strings; therefore, we overwrite the final character
  * (if any) of the buffer's original contents, on the assumption that
  * this is a NUL terminator.
+ *
+ * <h1>Pointing to other memory</h1>
+ *
+ * Loading data into a buffer incurs the cost of copying the data from
+ * its source.  If you know that the buffer will only be used in a
+ * read-only fashion, however, this is overkill.  There are also
+ * “point” functions for this use case.  Instead of copying the data
+ * into the buffer, these functions just have the buffer point at the
+ * original copy of the data.  As long as you only call
+ * hwm_buffer_data() and hwm_buffer_string() to access the data, no
+ * copying will be performed.  If you perform any action that requires
+ * modifying the data (which includes the “append” and “writable”
+ * functions), the original data will be copied into memory that the
+ * buffer controls.
  */
 
 
@@ -68,8 +82,9 @@ typedef struct hwm_buffer
     size_t  allocated_size;
 
     /**
-     * The size of the current data item in buf.  This might be less
-     * than allocated_size.
+     * The size of the current data item in buf.  If the buffer has
+     * been populated using the “load” or “append” functions, this
+     * must be <= allocated_size.
      */
 
     size_t  current_size;
@@ -82,7 +97,17 @@ typedef struct hwm_buffer
     unsigned int  allocation_count;
 
     /**
-     * The actual data buffer.
+     * The pointer to the data contained in the buffer.  When the
+     * buffer has been populated using the “point” functions, this is
+     * a pointer to memory that isn't controlled by the buffer.  When
+     * the buffer has been populated using the “load” or “append”
+     * functions, this is a pointer to the memory that we control.
+     */
+
+    const void  *data;
+
+    /**
+     * The memory region that the buffer controls.
      */
 
     void  *buf;
@@ -94,7 +119,22 @@ typedef struct hwm_buffer
  * You must specify the type of the contained data.
  */
 
-#define hwm_buffer_data(hwm, type) ((const type *) (hwm)->buf)
+#define hwm_buffer_mem(hwm, type) ((const type *) (hwm)->data)
+
+
+/**
+ * Return a writable pointer to the data stored in the buffer.  You
+ * must specify the type of the contained data.  If the buffer is
+ * currently pointing at some other memory region, then it will first
+ * be copied into the buffer so that it's safe to modify.  If we need
+ * to copy the data, but can't, we return NULL.
+ */
+
+#define hwm_buffer_writable_mem(hwm, type) \
+    ((type *) _hwm_buffer_writable_mem(hwm))
+
+void *
+_hwm_buffer_writable_mem(hwm_buffer_t *hwm);
 
 
 /**
@@ -102,7 +142,19 @@ typedef struct hwm_buffer
  * cast to <code>(const char *)</code>.
  */
 
-#define hwm_buffer_str(hwm) hwm_buffer_data(hwm, char)
+#define hwm_buffer_str(hwm) hwm_buffer_mem(hwm, char)
+
+
+/**
+ * Return a writable pointer to the data stored in the buffer, cast to
+ * <code>(char *)</code>.  You must specify the type of the contained
+ * data.  If the buffer is currently pointing at some other memory
+ * region, then it will first be copied into the buffer so that it's
+ * safe to modify.  If we need to copy the data, but can't, we return
+ * NULL.
+ */
+
+#define hwm_buffer_writable_str(hwm) hwm_buffer_writable_mem(hwm, char)
 
 
 /**
@@ -170,6 +222,16 @@ hwm_buffer_load_mem(hwm_buffer_t *hwm, const void *src, size_t size);
 
 
 /**
+ * Point the HWM buffer at data in another region of memory.  This
+ * doesn't involve allocating the buffer's own memory, so it cannot
+ * fail.
+ */
+
+void
+hwm_buffer_point_at_mem(hwm_buffer_t *hwm, const void *src, size_t size);
+
+
+/**
  * Appends data into the HWM buffer from some other source.  You don't
  * need to call hwm_buffer_ensure_size() first; this function does
  * that itself.  If the copying fails for some reason, we return
@@ -199,6 +261,16 @@ hwm_buffer_unload_mem(hwm_buffer_t *hwm, void *dest, size_t max_size);
 
 bool
 hwm_buffer_load_str(hwm_buffer_t *hwm, const char *src);
+
+
+/**
+ * Point the HWM buffer at a NUL-terminated string in another region
+ * of memory.  This doesn't involve allocating the buffer's own
+ * memory, so it cannot fail.
+ */
+
+void
+hwm_buffer_point_at_str(hwm_buffer_t *hwm, const char *src);
 
 
 /**

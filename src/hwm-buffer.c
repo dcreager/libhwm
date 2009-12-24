@@ -26,6 +26,7 @@ hwm_buffer_init(hwm_buffer_t *hwm)
     hwm->allocated_size = 0;
     hwm->current_size = 0;
     hwm->allocation_count = 0;
+    hwm->data = NULL;
     hwm->buf = NULL;
 }
 
@@ -69,6 +70,7 @@ hwm_buffer_done(hwm_buffer_t *hwm)
     hwm->allocated_size = 0;
     hwm->current_size = 0;
     hwm->allocation_count = 0;
+    hwm->data = NULL;
     hwm->buf = NULL;
 }
 
@@ -81,10 +83,45 @@ hwm_buffer_free(hwm_buffer_t *hwm)
 }
 
 
+void *
+_hwm_buffer_writable_mem(hwm_buffer_t *hwm)
+{
+    /*
+     * If we're currently pointing at some outside memory, we need to
+     * copy it into our buffer first.
+     */
+
+    if ((hwm->current_size > 0) && (hwm->data != hwm->buf))
+    {
+        /*
+         * Make sure we've got enough space in the internal buffer to
+         * copy the data over.
+         */
+
+        if (!hwm_buffer_ensure_size(hwm, hwm->current_size))
+            return NULL;
+
+        /*
+         * And then copy the data over.
+         */
+
+        memcpy(hwm->buf, hwm->data, hwm->current_size);
+        hwm->data = hwm->buf;
+    }
+
+    /*
+     * At this point, we know the data is stored in our internal
+     * buffer, so it's safe to modify.
+     */
+
+    return hwm->buf;
+}
+
+
 bool
 hwm_buffer_is_empty(hwm_buffer_t *hwm)
 {
-    return (hwm->buf == NULL) || (hwm->current_size == 0);
+    return (hwm->data == NULL) || (hwm->current_size == 0);
 }
 
 
@@ -143,8 +180,17 @@ hwm_buffer_load_mem(hwm_buffer_t *hwm, const void *src, size_t size)
      */
 
     memcpy(hwm->buf, src, size);
+    hwm->data = hwm->buf;
     hwm->current_size = size;
     return true;
+}
+
+
+void
+hwm_buffer_point_at_mem(hwm_buffer_t *hwm, const void *src, size_t size)
+{
+    hwm->data = src;
+    hwm->current_size = size;
 }
 
 
@@ -171,10 +217,21 @@ hwm_buffer_append_mem(hwm_buffer_t *hwm, const void *src, size_t size)
     }
 
     /*
+     * If we're currently pointing at some outside memory, we need to
+     * copy it into our buffer first.
+     */
+
+    if ((hwm->current_size > 0) && (hwm->data != hwm->buf))
+    {
+        memcpy(hwm->buf, hwm->data, hwm->current_size);
+    }
+
+    /*
      * Once we've got the space, copy the data over.
      */
 
     memcpy(hwm->buf + hwm->current_size, src, size);
+    hwm->data = hwm->buf;
     hwm->current_size += size;
     return true;
 }
@@ -192,7 +249,7 @@ hwm_buffer_unload_mem(hwm_buffer_t *hwm, void *dest, size_t max_size)
         max_size:
         hwm->current_size;
 
-    memcpy(dest, hwm->buf, size);
+    memcpy(dest, hwm->data, size);
 }
 
 
@@ -225,8 +282,17 @@ hwm_buffer_load_str(hwm_buffer_t *hwm, const char *src)
      */
 
     memcpy(hwm->buf, src, size);
+    hwm->data = hwm->buf;
     hwm->current_size = size;
     return true;
+}
+
+
+void
+hwm_buffer_point_at_str(hwm_buffer_t *hwm, const char *src)
+{
+    hwm->data = src;
+    hwm->current_size = strlen(src) + 1;
 }
 
 
@@ -274,12 +340,23 @@ hwm_buffer_append_str(hwm_buffer_t *hwm, const char *src)
     }
 
     /*
+     * If we're currently pointing at some outside memory, we need to
+     * copy it into our buffer first.
+     */
+
+    if ((modified_current_size > 0) && (hwm->data != hwm->buf))
+    {
+        memcpy(hwm->buf, hwm->data, modified_current_size);
+    }
+
+    /*
      * Once we've got the space, copy the data over.  Note that
      * current_size includes the byte used to store the NUL
      * terminator.
      */
 
     memcpy(hwm->buf + modified_current_size, src, size);
+    hwm->data = hwm->buf;
     hwm->current_size = modified_current_size + size;
     return true;
 }

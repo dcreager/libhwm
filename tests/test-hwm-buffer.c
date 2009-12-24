@@ -9,6 +9,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +29,9 @@ size_t  LENGTH_01 = 10;
 const char  *DATA_02 = "01234567890123456789";
 size_t  LENGTH_02 = 20;
 
+const char  *DATA_EMPTY_01 = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+size_t  LENGTH_EMPTY_01 = 10;
+
 
 /*-----------------------------------------------------------------------
  * Helper functions
@@ -35,12 +39,12 @@ size_t  LENGTH_02 = 20;
 
 #define fail_unless_buf_matches(buffer, other, size)            \
     {                                                           \
-        fail_if(hwm_buffer_data(buffer, void) == NULL,          \
+        fail_if(hwm_buffer_mem(buffer, void) == NULL,           \
                 "Data doesn't match: buffer unallocated");      \
         fail_unless((buffer)->current_size == size,             \
                     "Data doesn't match: wrong size (%zu)",     \
                     (buffer)->current_size);                    \
-        fail_unless(memcmp(hwm_buffer_data(buffer, void),       \
+        fail_unless(memcmp(hwm_buffer_mem(buffer, void),        \
                            other, size) == 0,                   \
                     "Data doesn't match: different contents");  \
     }
@@ -227,6 +231,56 @@ START_TEST(test_allocated_size_03)
 END_TEST
 
 
+START_TEST(test_point_at_mem_01)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_point_at_mem_02)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    hwm_buffer_point_at_mem(&buf, DATA_02, LENGTH_02);
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_point_at_mem_03)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 START_TEST(test_unload_mem_01)
 {
     hwm_buffer_t  buf;
@@ -285,6 +339,30 @@ START_TEST(test_append_mem_02)
 END_TEST
 
 
+START_TEST(test_point_at_append_mem_01)
+{
+    hwm_buffer_t  buf;
+
+    /*
+     * We want to test that if we point at some memory, and then
+     * append to it, that the end result is that we've got the two
+     * pieces concatenated together.  We're first going to fill the
+     * buffer with some other piece of memory — if that's in the
+     * end-result buffer, then the concatenation didn't work.
+     */
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_EMPTY_01, LENGTH_EMPTY_01),
+                "Cannot load HWM buffer");
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    fail_unless(hwm_buffer_append_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot append HWM buffer");
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 START_TEST(test_load_str_01)
 {
     hwm_buffer_t  buf;
@@ -320,6 +398,42 @@ START_TEST(test_load_str_02)
                 "Cannot load HWM buffer");
     fail_unless(hwm_buffer_load_str(&buf, DATA_02),
                 "Cannot load HWM buffer");
+
+    /*
+     * We have to include an extra byte for the NUL terminator.
+     */
+
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02+1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_point_at_str_01)
+{
+    hwm_buffer_t  buf;
+
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_str(&buf, DATA_01);
+
+    /*
+     * We have to include an extra byte for the NUL terminator.
+     */
+
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01+1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_point_at_str_02)
+{
+    hwm_buffer_t  buf;
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_str(&buf, DATA_01);
+    hwm_buffer_point_at_str(&buf, DATA_02);
 
     /*
      * We have to include an extra byte for the NUL terminator.
@@ -378,6 +492,35 @@ START_TEST(test_append_str_02)
 END_TEST
 
 
+START_TEST(test_point_at_append_str_01)
+{
+    hwm_buffer_t  buf;
+
+    /*
+     * We want to test that if we point at some memory, and then
+     * append to it, that the end result is that we've got the two
+     * pieces concatenated together.  We're first going to fill the
+     * buffer with some other piece of memory — if that's in the
+     * end-result buffer, then the concatenation didn't work.
+     */
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_EMPTY_01, LENGTH_EMPTY_01),
+                "Cannot load HWM buffer");
+    hwm_buffer_point_at_str(&buf, DATA_01);
+    fail_unless(hwm_buffer_append_str(&buf, DATA_01),
+                "Cannot append HWM buffer");
+
+    /*
+     * We have to include an extra byte for the NUL terminator.
+     */
+
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02+1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 START_TEST(test_load_buf_01)
 {
     hwm_buffer_t  buf1;
@@ -395,6 +538,60 @@ START_TEST(test_load_buf_01)
 
     hwm_buffer_done(&buf1);
     hwm_buffer_done(&buf2);
+}
+END_TEST
+
+
+START_TEST(test_writable_mem_01)
+{
+    hwm_buffer_t  buf;
+    uint8_t  *mem;
+
+    /*
+     * Point at our data string, then ask for a writable pointer.  If
+     * we modify one of the characters in that writable pointer, we'd
+     * better not have modified the original data string.
+     */
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+
+    mem = hwm_buffer_writable_mem(&buf, uint8_t);
+    fail_if(mem == NULL,
+            "Cannot get writable pointer");
+
+    mem[0] = 'Q';
+    fail_if(DATA_01[0] == 'Q',
+            "Changing writable pointer shouldn't change original data");
+
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_writable_str_01)
+{
+    hwm_buffer_t  buf;
+    char  *str;
+
+    /*
+     * Point at our data string, then ask for a writable pointer.  If
+     * we modify one of the characters in that writable pointer, we'd
+     * better not have modified the original data string.
+     */
+
+    hwm_buffer_init(&buf);
+    hwm_buffer_point_at_str(&buf, DATA_01);
+
+    str = hwm_buffer_writable_str(&buf);
+    fail_if(str == NULL,
+            "Cannot get writable pointer");
+
+    str[0] = 'Q';
+    fail_if(DATA_01[0] == 'Q',
+            "Changing writable pointer shouldn't change original data");
+
+    hwm_buffer_done(&buf);
 }
 END_TEST
 
@@ -418,14 +615,23 @@ test_suite()
     tcase_add_test(tc, test_allocated_size_01);
     tcase_add_test(tc, test_allocated_size_02);
     tcase_add_test(tc, test_allocated_size_03);
+    tcase_add_test(tc, test_point_at_mem_01);
+    tcase_add_test(tc, test_point_at_mem_02);
+    tcase_add_test(tc, test_point_at_mem_03);
     tcase_add_test(tc, test_unload_mem_01);
     tcase_add_test(tc, test_append_mem_01);
     tcase_add_test(tc, test_append_mem_02);
+    tcase_add_test(tc, test_point_at_append_mem_01);
     tcase_add_test(tc, test_load_str_01);
     tcase_add_test(tc, test_load_str_02);
+    tcase_add_test(tc, test_point_at_str_01);
+    tcase_add_test(tc, test_point_at_str_02);
     tcase_add_test(tc, test_append_str_01);
     tcase_add_test(tc, test_append_str_02);
+    tcase_add_test(tc, test_point_at_append_str_01);
     tcase_add_test(tc, test_load_buf_01);
+    tcase_add_test(tc, test_writable_mem_01);
+    tcase_add_test(tc, test_writable_str_01);
     suite_add_tcase(s, tc);
 
     return s;
