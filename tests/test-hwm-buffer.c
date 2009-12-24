@@ -35,12 +35,12 @@ size_t  LENGTH_02 = 20;
 
 #define fail_unless_buf_matches(buffer, other, size)            \
     {                                                           \
-        fail_if(hwm_buffer_data(buffer) == NULL,                \
+        fail_if(hwm_buffer_data(buffer, void) == NULL,          \
                 "Data doesn't match: buffer unallocated");      \
         fail_unless((buffer)->current_size == size,             \
                     "Data doesn't match: wrong size (%zu)",     \
                     (buffer)->current_size);                    \
-        fail_unless(memcmp(hwm_buffer_data(buffer),             \
+        fail_unless(memcmp(hwm_buffer_data(buffer, void),       \
                            other, size) == 0,                   \
                     "Data doesn't match: different contents");  \
     }

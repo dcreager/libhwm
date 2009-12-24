@@ -84,9 +84,10 @@ typedef struct hwm_buffer
 
 /**
  * Return a non-writable pointer to the data stored in the buffer.
+ * You must specify the type of the contained data.
  */
 
-#define hwm_buffer_data(hwm) ((const void *) (hwm)->buf)
+#define hwm_buffer_data(hwm, type) ((const type *) (hwm)->buf)
 
 
 /**
@@ -94,7 +95,7 @@ typedef struct hwm_buffer
  * cast to <code>(const char *)</code>.
  */
 
-#define hwm_buffer_str(hwm) ((const char *) (hwm)->buf)
+#define hwm_buffer_str(hwm) hwm_buffer_data(hwm, char)
 
 
 /**
