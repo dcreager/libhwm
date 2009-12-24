@@ -37,9 +37,22 @@ hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size)
 
         if (hwm->allocated_size < size)
         {
+            /*
+             * realloc might change the hwm->buf pointer.  The current
+             * data lives in our memory region, then hwm->data will
+             * equal hwm->buf, and we'll have to update it as well.
+             * If the current data is outside our memory region, we
+             * should *not* update hwm->data.
+             */
+
+            void  *old_buf = hwm->buf;
+
             hwm->buf = realloc(hwm->buf, size);
             hwm->allocated_size = size;
             hwm->allocation_count++;
+
+            if (hwm->data == old_buf)
+                hwm->data = hwm->buf;
         }
     }
 
