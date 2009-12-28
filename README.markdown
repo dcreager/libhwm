@@ -2,13 +2,13 @@
 
 This library implements “high-water mark” buffers.  A brief overview
 of what they are and why you might want to use them can be found
-[http://dcreager.net/2009/12/23/high-water-mark-buffers/](here).
+[here](http://dcreager.net/2009/12/23/high-water-mark-buffers/).
 
 
 ## Building libhwm
 
 To build libhwm, you need a recent C compiler and
-[http://www.scons.org/](SCons).  There are no library prerequisites.
+[SCons](http://www.scons.org/).  There are no library prerequisites.
 To build the source, just run
 
     $ scons
@@ -27,7 +27,7 @@ The `prefix` parameter is optional; if left out, we default to _/usr_.
 ## Documentation
 
 The library is documented using
-[http://www.stack.nl/~dimitri/doxygen/index.html](Doxygen).  To build
+[Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html).  To build
 the documentation, run
 
     $ scons doc
