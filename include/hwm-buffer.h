@@ -16,11 +16,12 @@
 #include <stdio.h>
 
 /**
- * @file This file provides a “high-water mark” buffer.  This allows
- * you to easily work with data records that contain variable-sized
- * fields.
+ * @mainpage High-water mark buffers
  *
- * <h1>Normal operation</h1>
+ * Please see the hwm-buffer.h file for details about the available
+ * functions in this library.
+ *
+ * @section normal Normal operation
  *
  * In normal operation, the HWM buffer maintains its own buffer of
  * memory.  You can “load” data into the buffer, which copies the data
@@ -38,7 +39,7 @@
  * the destination region, so that we can make sure not to overflow in
  * the case that the HWM contains more data than that.
  *
- * <h1>String functions</h1>
+ * @section string String functions
  *
  * The functions that contain “str” in their name can be used to
  * handle NUL-terminated strings.  Loading a string into a buffer
@@ -49,7 +50,7 @@
  * (if any) of the buffer's original contents, on the assumption that
  * this is a NUL terminator.
  *
- * <h1>Pointing to other memory</h1>
+ * @section pointing Pointing to other memory
  *
  * Loading data into a buffer incurs the cost of copying the data from
  * its source.  If you know that the buffer will only be used in a
@@ -62,6 +63,13 @@
  * modifying the data (which includes the “append” and “writable”
  * functions), the original data will be copied into memory that the
  * buffer controls.
+ */
+
+/**
+ * @file
+ *
+ * This file provides a “high-water mark” buffer.  This allows you to
+ * easily work with data records that contain variable-sized fields.
  */
 
 
@@ -79,6 +87,8 @@ typedef struct hwm_buffer
     /**
      * The allocated size of buf.  Its value is undefined if buf is
      * NULL.
+     *
+     * @private
      */
     size_t  allocated_size;
 
@@ -86,6 +96,8 @@ typedef struct hwm_buffer
      * The size of the current data item in buf.  If the buffer has
      * been populated using the “load” or “append” functions, this
      * must be <= allocated_size.
+     *
+     * @private
      */
 
     size_t  current_size;
@@ -93,6 +105,8 @@ typedef struct hwm_buffer
     /**
      * The number of times the data buffer has been allocated or
      * reallocated.
+     *
+     * @private
      */
 
     unsigned int  allocation_count;
@@ -103,12 +117,16 @@ typedef struct hwm_buffer
      * a pointer to memory that isn't controlled by the buffer.  When
      * the buffer has been populated using the “load” or “append”
      * functions, this is a pointer to the memory that we control.
+     *
+     * @private
      */
 
     const void  *data;
 
     /**
      * The memory region that the buffer controls.
+     *
+     * @private
      */
 
     void  *buf;
@@ -133,6 +151,14 @@ typedef struct hwm_buffer
 
 #define hwm_buffer_writable_mem(hwm, type) \
     ((type *) _hwm_buffer_writable_mem(hwm))
+
+/**
+ * Does the actual work for hwm_buffer_writable_mem().  This function
+ * returns a <code>void *</code>; the hwm_buffer_writable_mem() macro
+ * casts to the desired return type.
+ *
+ * @private
+ */
 
 void *
 _hwm_buffer_writable_mem(hwm_buffer_t *hwm);
@@ -305,10 +331,7 @@ hwm_buffer_load_buf(hwm_buffer_t *hwm, const hwm_buffer_t *src);
  *
  * <pre>
  *   00 01 02 03 04 05 06 07   08 09 0a 0b 0c 0d 0e 0f
- *   .
- *   .
- *   .
- * </pre>
+ *     <i>etc.</i></pre>
  */
 
 void

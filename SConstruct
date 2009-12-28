@@ -80,7 +80,8 @@ SOURCE_FILES.extend(build_files)
 Export('root_env')
 SConscript(['include/SConscript',
             'src/SConscript',
-            'tests/SConscript'])
+            'tests/SConscript',
+            'doc/SConscript'])
 
 # Install documentation files
 
