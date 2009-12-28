@@ -1,13 +1,17 @@
-Import('root_env')
+Import('root_env SOURCE_FILES')
+
+SOURCE_FILES.append(File('SConscript'))
 
 env = root_env.Clone()
 
 env.Alias("install", env.Install("$INCLUDEDIR"))
 
-h_files = \
+h_files = map(File, \
     [
      "hwm-buffer.h",
-    ]
+    ])
+
+SOURCE_FILES.extend(h_files)
 
 env.Alias("install", env.Install("$INCLUDEDIR",
                                  h_files))

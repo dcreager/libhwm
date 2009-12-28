@@ -1,17 +1,21 @@
-Import('root_env')
+Import('root_env SOURCE_FILES')
+
+SOURCE_FILES.append(File('SConscript'))
 
 env = root_env.Clone()
 
 env.Append(CPPPATH = ["#/include"])
 
-libhwm_files = \
+libhwm_files = map(File, \
     [
      "allocate.c",
      "append.c",
      "inspect.c",
      "load.c",
      "unload.c",
-    ]
+    ])
+
+SOURCE_FILES.extend(libhwm_files)
 
 libhwm = env.SharedLibrary("hwm", libhwm_files)
 env.Alias("install", env.Install("$LIBDIR", libhwm))

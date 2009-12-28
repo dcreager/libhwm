@@ -1,7 +1,9 @@
 import os
 import os.path
 
-Import('root_env')
+Import('root_env SOURCE_FILES')
+
+SOURCE_FILES.append(File('SConscript'))
 
 env = root_env.Clone()
 
@@ -16,7 +18,7 @@ rpath = [env.Literal(os.path.join('\\$$ORIGIN', os.pardir, 'src'))]
 
 def add_test(test_program):
     c_file = "%s.c" % test_program
-
+    SOURCE_FILES.append(File(c_file))
 
     target = env.Program(test_program, [c_file],
                          LIBS=['hwm', '$check_LIB'],

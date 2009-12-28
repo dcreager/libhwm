@@ -3,6 +3,8 @@
 .scons.vars*
 config.log
 
+libhwm*
+
 *.[oa]
 *.os
 *.so
