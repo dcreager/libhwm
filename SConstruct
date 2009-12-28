@@ -12,7 +12,7 @@ vars.AddVariables(
 
 root_env = Environment(tools=['default', 'packaging'],
                        package="libhwm",
-                       pkg_version="1.0-dev",
+                       pkg_version="1.0",
                        BINDIR = "$prefix/bin",
                        DOCDIR = "$prefix/share/doc/$package",
                        LIBDIR = "$prefix/lib",
