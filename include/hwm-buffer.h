@@ -63,6 +63,14 @@
  * modifying the data (which includes the “append” and “writable”
  * functions), the original data will be copied into memory that the
  * buffer controls.
+ *
+ * @section lists List functions
+ *
+ * It's also possible to use an HWM buffer as an expandable array,
+ * much like the Java <code>ArrayList</code> class.  The list macros
+ * each take in an additional parameter, which is the type of the list
+ * elements.  This allows you to specify the size of the list in terms
+ * of a number of elements.
  */
 
 /**
@@ -185,6 +193,38 @@ _hwm_buffer_writable_mem(hwm_buffer_t *hwm);
 
 
 /**
+ * Return a non-writable pointer to the specified element of the list
+ * stored in the buffer.  You must specify the type of the contained
+ * data, in addition to the index of the element that you want.
+ */
+
+#define hwm_buffer_list_elem(hwm, type, elem) \
+    (((const type *) (hwm)->data) + (elem))
+
+
+/**
+ * Return a writable pointer to the specified element of the list
+ * stored in the buffer.  You must specify the type of the contained
+ * data, in addition to the index of the element that you want.  If
+ * the buffer is currently pointing at some other memory region, then
+ * it will first be copied into the buffer so that it's safe to
+ * modify.  If we need to copy the data, but can't, we return NULL.
+ */
+
+#define hwm_buffer_writable_list_elem(hwm, type, elem)    \
+    (((type *) _hwm_buffer_writable_mem(hwm)) + (elem))
+
+
+/**
+ * Return the number of list elements that are currently contained in
+ * the buffer.
+ */
+
+#define hwm_buffer_current_list_size(hwm, type) \
+    ((hwm)->current_size / sizeof(type))
+
+
+/**
  * Initialize a new HWM buffer that has already been allocated (on the
  * stack, for instance).
  */
@@ -235,6 +275,16 @@ hwm_buffer_is_empty(hwm_buffer_t *hwm);
 
 bool
 hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size);
+
+
+/**
+ * Ensure that the HWM buffer has enough allocated space to store the
+ * given number of elements of the specified type.  If we can't
+ * allocate enough space, return false.  Otherwise, return true.
+ */
+
+#define hwm_buffer_ensure_list_size(hwm, type, elems) \
+    (hwm_buffer_ensure_size((hwm), sizeof(type) * (elems))
 
 
 /**
@@ -323,6 +373,27 @@ hwm_buffer_append_str(hwm_buffer_t *hwm, const char *src);
 
 bool
 hwm_buffer_load_buf(hwm_buffer_t *hwm, const hwm_buffer_t *src);
+
+
+/**
+ * Append one list element to the buffer, returning a pointer to it.
+ * If we need to expand the buffer, but can't, we return NULL.
+ */
+
+#define hwm_buffer_append_list_elem(hwm, type)  \
+    ((type *) _hwm_buffer_append_list_elem(hwm, sizeof(type)))
+
+/**
+ * Does the actual work for hwm_buffer_append_list_elem().  This
+ * function returns a <code>void *</code>; the
+ * hwm_buffer_append_list_elem() macro casts to the desired return
+ * type.
+ *
+ * @private
+ */
+
+void *
+_hwm_buffer_append_list_elem(hwm_buffer_t *hwm, size_t elem_size);
 
 
 /**

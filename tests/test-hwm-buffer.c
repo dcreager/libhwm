@@ -48,16 +48,16 @@ size_t  LENGTH_EMPTY_01 = 10;
         if (memcmp(hwm_buffer_mem(buffer, void),                \
                    other, size) != 0)                           \
         {                                                       \
-            hwm_buffer_t  expected;                             \
-            hwm_buffer_init(&expected);                         \
-            hwm_buffer_point_at_mem(&expected, other, size);    \
+            hwm_buffer_t  __expected;                           \
+            hwm_buffer_init(&__expected);                       \
+            hwm_buffer_point_at_mem(&__expected, other, size);  \
                                                                 \
             fprintf(stderr, "Actual:\n");                       \
             hwm_buffer_fprint(stderr, buffer);                  \
             fprintf(stderr, "Expected:\n");                     \
-            hwm_buffer_fprint(stderr, &expected);               \
+            hwm_buffer_fprint(stderr, &__expected);             \
                                                                 \
-            hwm_buffer_done(&expected);                         \
+            hwm_buffer_done(&__expected);                       \
             fail("Data doesn't match: different contents");     \
         }                                                       \
     }
@@ -609,6 +609,114 @@ START_TEST(test_writable_str_01)
 END_TEST
 
 
+START_TEST(test_append_list_size_01)
+{
+    hwm_buffer_t  buf;
+    unsigned int  *elem;
+
+    hwm_buffer_init(&buf);
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 1;
+
+    fail_unless(hwm_buffer_current_list_size(&buf, unsigned int) == 1,
+                "List is wrong size (got %zu, expected %zu)",
+                hwm_buffer_current_list_size(&buf, unsigned int), 1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_append_list_size_02)
+{
+    hwm_buffer_t  buf;
+    unsigned int  *elem;
+
+    hwm_buffer_init(&buf);
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 1;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 2;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 3;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 4;
+
+    fail_unless(hwm_buffer_current_list_size(&buf, unsigned int) == 4,
+                "List is wrong size (got %zu, expected %zu)",
+                hwm_buffer_current_list_size(&buf, unsigned int), 4);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_append_list_01)
+{
+    hwm_buffer_t  buf;
+    unsigned int  *elem;
+    unsigned int  expected[] = { 1,2,3,4 };
+    size_t  expected_size = 4 * sizeof(unsigned int);
+
+    hwm_buffer_init(&buf);
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 1;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 2;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 3;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 4;
+
+    fail_unless_buf_matches(&buf, expected, expected_size);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_append_list_02)
+{
+    hwm_buffer_t  buf;
+    unsigned int  *elem;
+    unsigned int  expected[] = { 1 };
+    size_t  expected_size = 1 * sizeof(unsigned int);
+
+    hwm_buffer_init(&buf);
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 1;
+
+    fail_unless_buf_matches(&buf, expected, expected_size);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -645,6 +753,10 @@ test_suite()
     tcase_add_test(tc, test_load_buf_01);
     tcase_add_test(tc, test_writable_mem_01);
     tcase_add_test(tc, test_writable_str_01);
+    tcase_add_test(tc, test_append_list_size_01);
+    tcase_add_test(tc, test_append_list_size_02);
+    tcase_add_test(tc, test_append_list_01);
+    tcase_add_test(tc, test_append_list_02);
     suite_add_tcase(s, tc);
 
     return s;
