@@ -717,6 +717,34 @@ START_TEST(test_append_list_02)
 END_TEST
 
 
+START_TEST(test_ensure_list_size_01)
+{
+    hwm_buffer_t  buf;
+    unsigned int  *elem;
+
+    hwm_buffer_init(&buf);
+
+    fail_unless(hwm_buffer_ensure_list_size(&buf, unsigned int, 2),
+                "Cannot grow list");
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 1;
+
+    elem = hwm_buffer_append_list_elem(&buf, unsigned int);
+    fail_if(elem == NULL,
+            "Cannot append HWM list");
+    *elem = 2;
+
+    fail_unless(hwm_buffer_current_list_size(&buf, unsigned int) == 2,
+                "List is wrong size (got %zu, expected %zu)",
+                hwm_buffer_current_list_size(&buf, unsigned int), 2);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 /*-----------------------------------------------------------------------
  * Testing harness
  */
@@ -757,6 +785,7 @@ test_suite()
     tcase_add_test(tc, test_append_list_size_02);
     tcase_add_test(tc, test_append_list_01);
     tcase_add_test(tc, test_append_list_02);
+    tcase_add_test(tc, test_ensure_list_size_01);
     suite_add_tcase(s, tc);
 
     return s;

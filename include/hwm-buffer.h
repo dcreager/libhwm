@@ -284,7 +284,7 @@ hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size);
  */
 
 #define hwm_buffer_ensure_list_size(hwm, type, elems) \
-    (hwm_buffer_ensure_size((hwm), sizeof(type) * (elems))
+    (hwm_buffer_ensure_size((hwm), sizeof(type) * (elems)))
 
 
 /**
