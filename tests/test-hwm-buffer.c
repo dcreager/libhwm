@@ -294,6 +294,50 @@ START_TEST(test_point_at_mem_03)
 END_TEST
 
 
+START_TEST(test_static_init_mem_01)
+{
+    hwm_buffer_t  buf = HWM_BUFFER_INIT(DATA_01, LENGTH_01);
+
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_static_init_mem_02)
+{
+    hwm_buffer_t  buf = HWM_BUFFER_INIT(DATA_01, LENGTH_01);
+
+    hwm_buffer_point_at_mem(&buf, DATA_02, LENGTH_02);
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_static_init_mem_03)
+{
+    hwm_buffer_t  buf = HWM_BUFFER_INIT(DATA_01, LENGTH_01);
+
+    hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(buf.allocation_count == 0,
+                "Didn't allocate the right number of times "
+                "(got %u, expected %u)",
+                buf.allocation_count, 0);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 START_TEST(test_unload_mem_01)
 {
     hwm_buffer_t  buf;
@@ -368,6 +412,24 @@ START_TEST(test_point_at_append_mem_01)
     fail_unless(hwm_buffer_load_mem(&buf, DATA_EMPTY_01, LENGTH_EMPTY_01),
                 "Cannot load HWM buffer");
     hwm_buffer_point_at_mem(&buf, DATA_01, LENGTH_01);
+    fail_unless(hwm_buffer_append_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot append HWM buffer");
+    fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_static_init_append_mem_01)
+{
+    hwm_buffer_t  buf = HWM_BUFFER_INIT(DATA_01, LENGTH_01);
+
+    /*
+     * We want to test that if we point at some memory, and then
+     * append to it, that the end result is that we've got the two
+     * pieces concatenated together.
+     */
+
     fail_unless(hwm_buffer_append_mem(&buf, DATA_01, LENGTH_01),
                 "Cannot append HWM buffer");
     fail_unless_buf_matches(&buf, DATA_02, LENGTH_02);
@@ -824,10 +886,14 @@ test_suite()
     tcase_add_test(tc, test_point_at_mem_01);
     tcase_add_test(tc, test_point_at_mem_02);
     tcase_add_test(tc, test_point_at_mem_03);
+    tcase_add_test(tc, test_static_init_mem_01);
+    tcase_add_test(tc, test_static_init_mem_02);
+    tcase_add_test(tc, test_static_init_mem_03);
     tcase_add_test(tc, test_unload_mem_01);
     tcase_add_test(tc, test_append_mem_01);
     tcase_add_test(tc, test_append_mem_02);
     tcase_add_test(tc, test_point_at_append_mem_01);
+    tcase_add_test(tc, test_static_init_append_mem_01);
     tcase_add_test(tc, test_clear_append_mem_01);
     tcase_add_test(tc, test_load_str_01);
     tcase_add_test(tc, test_load_str_02);

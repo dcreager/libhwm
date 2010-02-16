@@ -142,6 +142,14 @@ typedef struct hwm_buffer
 
 
 /**
+ * Staticly initialize an hwm_buffer_t to point at another region of
+ * memory.
+ */
+
+#define HWM_BUFFER_INIT(src, size) { 0, (size), 0, (src), NULL }
+
+
+/**
  * Return a non-writable pointer to the data stored in the buffer.
  * You must specify the type of the contained data.
  */
