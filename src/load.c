@@ -66,6 +66,21 @@ hwm_buffer_ensure_size(hwm_buffer_t *hwm, size_t size)
 
 
 bool
+hwm_buffer_clear(hwm_buffer_t *hwm)
+{
+    /*
+     * Reset the size counter to 0, and make sure that our data
+     * pointer is pointing at the local buffer.
+     */
+
+    hwm->data = hwm->buf;
+    hwm->current_size = 0;
+
+    return true;
+}
+
+
+bool
 hwm_buffer_load_mem(hwm_buffer_t *hwm, const void *src, size_t size)
 {
     /*

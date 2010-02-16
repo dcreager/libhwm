@@ -268,6 +268,15 @@ hwm_buffer_is_empty(hwm_buffer_t *hwm);
 
 
 /**
+ * Clear the HWM buffer.  Return true if this is successful, false
+ * otherwise.
+ */
+
+bool
+hwm_buffer_clear(hwm_buffer_t *hwm);
+
+
+/**
  * Ensure that the HWM buffer has enough allocated space to store a
  * value of size bytes.  If we can't allocate enough space, return
  * false.  Otherwise, return true.

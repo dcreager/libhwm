@@ -376,6 +376,29 @@ START_TEST(test_point_at_append_mem_01)
 END_TEST
 
 
+START_TEST(test_clear_append_mem_01)
+{
+    hwm_buffer_t  buf;
+
+    /*
+     * Appending to an empty buffer should be the same as loading,
+     * even if the buffer is empty because we just cleared it.
+     */
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot load HWM buffer");
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    fail_unless(hwm_buffer_clear(&buf),
+                "Cannot clear HWM buffer");
+    fail_unless(hwm_buffer_append_mem(&buf, DATA_01, LENGTH_01),
+                "Cannot append HWM buffer");
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
 START_TEST(test_load_str_01)
 {
     hwm_buffer_t  buf;
@@ -529,6 +552,40 @@ START_TEST(test_point_at_append_str_01)
      */
 
     fail_unless_buf_matches(&buf, DATA_02, LENGTH_02+1);
+    hwm_buffer_done(&buf);
+}
+END_TEST
+
+
+START_TEST(test_clear_append_str_01)
+{
+    hwm_buffer_t  buf;
+
+    /*
+     * Appending to an empty buffer should be the same as loading,
+     * even if the buffer is empty because we just cleared it.
+     */
+
+    hwm_buffer_init(&buf);
+    fail_unless(hwm_buffer_load_str(&buf, DATA_01),
+                "Cannot load HWM buffer");
+
+    /*
+     * We have to include an extra byte for the NUL terminator.
+     */
+
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01+1);
+
+    fail_unless(hwm_buffer_clear(&buf),
+                "Cannot clear HWM buffer");
+    fail_unless(hwm_buffer_append_str(&buf, DATA_01),
+                "Cannot append HWM buffer");
+
+    /*
+     * We have to include an extra byte for the NUL terminator.
+     */
+
+    fail_unless_buf_matches(&buf, DATA_01, LENGTH_01+1);
     hwm_buffer_done(&buf);
 }
 END_TEST
@@ -771,6 +828,7 @@ test_suite()
     tcase_add_test(tc, test_append_mem_01);
     tcase_add_test(tc, test_append_mem_02);
     tcase_add_test(tc, test_point_at_append_mem_01);
+    tcase_add_test(tc, test_clear_append_mem_01);
     tcase_add_test(tc, test_load_str_01);
     tcase_add_test(tc, test_load_str_02);
     tcase_add_test(tc, test_point_at_str_01);
@@ -778,6 +836,7 @@ test_suite()
     tcase_add_test(tc, test_append_str_01);
     tcase_add_test(tc, test_append_str_02);
     tcase_add_test(tc, test_point_at_append_str_01);
+    tcase_add_test(tc, test_clear_append_str_01);
     tcase_add_test(tc, test_load_buf_01);
     tcase_add_test(tc, test_writable_mem_01);
     tcase_add_test(tc, test_writable_str_01);
