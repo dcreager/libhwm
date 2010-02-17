@@ -99,32 +99,6 @@ START_TEST(test_starts_empty)
 END_TEST
 
 
-START_TEST(test_alloc_fail)
-{
-    hwm_buffer_t  buf;
-
-    hwm_buffer_init(&buf);
-    fail_if(hwm_buffer_ensure_size(&buf, (size_t) -1),
-            "Didn't receive error code when allocating -1 bytes");
-    hwm_buffer_done(&buf);
-}
-END_TEST
-
-
-START_TEST(test_realloc_fail)
-{
-    hwm_buffer_t  buf;
-
-    hwm_buffer_init(&buf);
-    fail_unless(hwm_buffer_ensure_size(&buf, 10),
-                "Couldn't allocate 10 bytes");
-    fail_if(hwm_buffer_ensure_size(&buf, (size_t) -1),
-            "Didn't receive error code when reallocating -1 bytes");
-    hwm_buffer_done(&buf);
-}
-END_TEST
-
-
 START_TEST(test_load_mem_01)
 {
     hwm_buffer_t  buf;
@@ -875,8 +849,6 @@ test_suite()
 
     TCase  *tc = tcase_create("hwm-buffer");
     tcase_add_test(tc, test_starts_empty);
-    tcase_add_test(tc, test_alloc_fail);
-    tcase_add_test(tc, test_realloc_fail);
     tcase_add_test(tc, test_load_mem_01);
     tcase_add_test(tc, test_load_mem_02);
     tcase_add_test(tc, test_load_mem_03);
