@@ -3,7 +3,8 @@
 .scons.vars*
 config.log
 
-libhwm*
+libhwm*/
+libhwm*.tar.gz
 
 *.[oa]
 *.os
