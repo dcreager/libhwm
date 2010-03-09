@@ -3,6 +3,8 @@
 .scons.vars*
 config.log
 
+RELEASE-VERSION
+
 libhwm*/
 libhwm*.tar.gz
 
