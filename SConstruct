@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from checklib import *
+from version import *
 
 vars = Variables('.scons.vars', ARGUMENTS)
 
@@ -10,9 +11,9 @@ vars.AddVariables(
     )
 
 
-root_env = Environment(tools=['default', 'packaging'],
+root_env = Environment(tools=['default', 'packaging', 'write_value'],
                        package="libhwm",
-                       pkg_version="1.0",
+                       pkg_version="$VERSION",
                        BINDIR = "$prefix/bin",
                        DOCDIR = "$prefix/share/doc/$package",
                        LIBDIR = "$prefix/lib",
@@ -59,6 +60,12 @@ if not GetOption('clean') and not GetOption('help'):
 
     root_env = conf.Finish()
 
+
+
+version = get_git_version(root_env, "#/RELEASE-VERSION")
+print "Package version: %s" % version
+
+
 # Set up a list of source files for the packaging target later on.
 # Each SConscript file is responsible for updating this list.
 
@@ -70,7 +77,10 @@ Export('SOURCE_FILES')
 build_files = map(File, \
     [
      "SConstruct",
+     "RELEASE-VERSION",
      "site_scons/checklib.py",
+     "site_scons/version.py",
+     "site_scons/site_tools/write_value.py",
     ])
 
 SOURCE_FILES.extend(build_files)
